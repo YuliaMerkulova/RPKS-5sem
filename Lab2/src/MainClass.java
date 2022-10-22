@@ -1,20 +1,39 @@
-import java.util.HashSet;
-import java.util.InputMismatchException;
-import java.util.Iterator;
-import java.util.Scanner;
-import java.util.regex.Pattern;
-
-import static java.lang.Character.isDigit;
-import static java.lang.Character.isSpaceChar;
+import java.util.*;
 
 public class MainClass {
 
-    public static class IncorrectSymbolException extends Exception {
-        public IncorrectSymbolException(String err){
-            super(err);
+    public static boolean exchangeMoney(int value, Integer[] valuesSet, int i, ArrayList<Integer> output)
+    {
+        int tmpVal = value;
+        if (i != -1) {
+            tmpVal -= valuesSet[i];
+            if (tmpVal == 0) {
+                return true;
+            }
+            if (tmpVal < 0) {
+                return false;
+            }
         }
-    };
+        else {
+            i += 1;
+        }
+
+        for (int j = i; j < valuesSet.length; j++) {
+            if(exchangeMoney(tmpVal, valuesSet, j, output)) {
+                output.add(valuesSet[j]);
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
+        Integer setVal[] = {2, 1};
+        ArrayList<Integer> outArray = new ArrayList<>();
+        System.out.println("test: " + exchangeMoney(10, setVal, -1, setVal.length, outArray));
+        for (Integer value : outArray) {
+            System.out.println(value);
+        }
         Scanner in = new Scanner(System.in);
         try {
             System.out.println("Input sum of money");
@@ -36,7 +55,8 @@ public class MainClass {
             for (Integer i : valuesSet) {
                 System.out.println(i);
             }
-            
+
+
         }catch (NumberFormatException e){
             System.err.print(e);
         }catch (InputMismatchException er){
