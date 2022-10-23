@@ -4,27 +4,42 @@ public class MainClass {
 
     public static boolean exchangeMoney(int value, Integer[] valuesSet, int i, ArrayList<Integer> output)
     {
-        int tmpVal = value;
-        if (i != -1) {
-            tmpVal -= valuesSet[i];
-            if (tmpVal == 0) {
-                return true;
-            }
-            if (tmpVal < 0) {
-                return false;
-            }
-        }
-        else {
-            i += 1;
-        }
 
-        for (int j = i; j < valuesSet.length; j++) {
-            if(exchangeMoney(tmpVal, valuesSet, j, output)) {
+        if (value == 0)
+            return true;
+        if (value < 0)
+            return false;
+        for (int j = i; j < valuesSet.length; j++)
+        {
+            if (exchangeMoney(value - valuesSet[j], valuesSet, j, output))
+            {
                 output.add(valuesSet[j]);
                 return true;
             }
         }
         return false;
+
+//        int tmpVal = value;
+//        if (i != -1) {
+//            tmpVal -= valuesSet[i];
+//            if (tmpVal == 0) {
+//                return true;
+//            }
+//            if (tmpVal < 0) {
+//                return false;
+//            }
+//        }
+//        else {
+//            i += 1;
+//        }
+//
+//        for (int j = i; j < valuesSet.length; j++) {
+//            if(exchangeMoney(tmpVal, valuesSet, j, output)) {
+//                output.add(valuesSet[j]);
+//                return true;
+//            }
+//        }
+//        return false;
     }
 
     public static void main(String[] args) {
@@ -48,7 +63,7 @@ public class MainClass {
                 resMap.put(Integer.parseInt(valuesStr[i]), 0);
             }
             ArrayList<Integer> outArray = new ArrayList<>();
-            boolean result = exchangeMoney(sum, valuesArr, -1, outArray);
+            boolean result = exchangeMoney(sum, valuesArr, 0, outArray);
             if (result){
                 for (Integer integer : outArray) {
                     resMap.put(integer, resMap.get(integer) + 1);
