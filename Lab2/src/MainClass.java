@@ -28,12 +28,6 @@ public class MainClass {
     }
 
     public static void main(String[] args) {
-        Integer setVal[] = {2, 1};
-        ArrayList<Integer> outArray = new ArrayList<>();
-        System.out.println("test: " + exchangeMoney(10, setVal, -1, setVal.length, outArray));
-        for (Integer value : outArray) {
-            System.out.println(value);
-        }
         Scanner in = new Scanner(System.in);
         try {
             System.out.println("Input sum of money");
@@ -45,18 +39,27 @@ public class MainClass {
             String line = in.nextLine();
 
             String[] valuesStr = line.split(" ");
-            HashSet<Integer> valuesSet = new HashSet<Integer>();
-
-            for (String s : valuesStr) {
-                valuesSet.add(Integer.parseInt(s));
+            Integer[] valuesArr = new Integer[valuesStr.length];
+            HashMap<Integer, Integer> resMap = new HashMap<Integer, Integer>(valuesArr.length);
+            for (int i = 0; i < valuesArr.length; i++) {
+                valuesArr[i] = Integer.parseInt(valuesStr[i]);
+                if (valuesArr[i] <= 0)
+                    throw new NumberFormatException("Number is 0 or negative, try again");
+                resMap.put(Integer.parseInt(valuesStr[i]), 0);
             }
-
-            Iterator<Integer> it = valuesSet.iterator();
-            for (Integer i : valuesSet) {
-                System.out.println(i);
+            ArrayList<Integer> outArray = new ArrayList<>();
+            boolean result = exchangeMoney(sum, valuesArr, -1, outArray);
+            if (result){
+                for (Integer integer : outArray) {
+                    resMap.put(integer, resMap.get(integer) + 1);
+                }
+                System.out.print(sum + "-> ");
+                for (int i = 0; i < valuesArr.length; i++)
+                {
+                    System.out.print(valuesArr[i] + "[" + resMap.get(valuesArr[i]) + "] ");
+                }
             }
-
-
+            else System.out.println("Can't do it");
         }catch (NumberFormatException e){
             System.err.print(e);
         }catch (InputMismatchException er){
