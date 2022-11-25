@@ -1,14 +1,11 @@
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
+import java.util.*;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.MalformedJsonException;
-
-import java.util.HashMap;
-import java.util.Stack;
-//lallallala
 
 public class MainClass {
 
@@ -24,58 +21,60 @@ public class MainClass {
         }
     }
 
-    static class Symbol{
-        public int position;
-        public Character num;
-        public Symbol(int pos, Character num){
-            this.position = pos;
-            this.num = num;
-        }
-    }
-
     public static void readMyJson(String jsonFile, ArrayList<Bracket> brackets) throws FileNotFoundException, JsonSyntaxException, MalformedJsonException {
         Gson gson = new Gson();
         Type listType = new TypeToken<ArrayList<Bracket>>(){}.getType();
-        brackets.addAll(gson.fromJson(new FileReader(jsonFile), listType));
+        //brackets.addAll(gson.fromJson(new FileReader(jsonFile), listType)); // как закрыть json
+
+        try (FileReader fr = new FileReader(jsonFile))
+        {
+            brackets.addAll(gson.fromJson(fr, listType));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
-    public static Symbol checkText(String textFile, HashMap<Character, Character> mapBrackets) throws IOException  {
-        Stack<Symbol> checkCharStack = new Stack<>();
+    public static int checkText(String textFile, HashMap<Character, Character> mapBrackets) throws IOException  {
+        Deque<Character> checkCharStack = new ArrayDeque<>();
+        //Stack<Character> checkCharStack = new Stack<>(); // какой класс вместо стека?
         FileReader reader = new FileReader(textFile);
         int c;
         int position = -1;
-        Character myChar = '0';
         while((c = reader.read()) != -1){
             Character num = (char)c;
             position++;
-            if (mapBrackets.containsValue(num))
+            if (mapBrackets.containsValue(num)) //если открывающая
             {
-                checkCharStack.add(new Symbol(position, num));
+                checkCharStack.addLast(num);
             }
-            if (mapBrackets.containsKey(num))
+            if (mapBrackets.containsKey(num)) //если закрывающая
             {
-                if (!checkCharStack.empty()) {
-                    if (checkCharStack.peek().num.equals(mapBrackets.get(num))) {
-                        checkCharStack.pop();
+                if (!checkCharStack.isEmpty()) {
+                    if (checkCharStack.peekLast() == mapBrackets.get(num)) { //парная
+                        checkCharStack.removeLast();
                     } else
-                        return new Symbol(position, num);
+                        return position;
                 }
-                else return new Symbol(position, num);
+                else return position;
             }
 
         }
-        if (!checkCharStack.empty()) {
-            return new Symbol(position, myChar);
+        reader.close();
+        if (!checkCharStack.isEmpty()) {
+            return position;
         }
-        return new Symbol(-1, myChar);
+        return -1;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args){
+
         if (args.length != 2)
         {
             System.out.println("Not two arguments");
             System.exit(0);
         }
+
         ArrayList<Bracket> brackets = new ArrayList<>();
         try{
             readMyJson(args[0], brackets);
@@ -86,17 +85,16 @@ public class MainClass {
         {
             e.printStackTrace();
         }
-        HashMap<Character, Character> mapBrackets = new HashMap<>();
 
+        HashMap<Character, Character> mapBrackets = new HashMap<>();
         for (Bracket bracket : brackets) {
-            System.out.println(bracket);
             mapBrackets.put(bracket.right, bracket.left);
         }
 
         try {
-            Symbol res = checkText(args[1], mapBrackets);
-            if (res.position != -1)
-                System.out.println("Error at pose" + res.position);
+            int res = checkText(args[1], mapBrackets);
+            if (res != -1)
+                System.out.println("Error at pose" + res);
             else
                 System.out.println("No errors");
         } catch (FileNotFoundException e)
