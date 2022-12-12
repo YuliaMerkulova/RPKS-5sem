@@ -30,9 +30,9 @@ public class MainClass {
                 } else if (param.endsWith("m")) {
                     timeParam = Long.parseLong(param.substring(0, param.lastIndexOf("m"))) * 60;
                 } else if (param.endsWith("h")) {
-                    timeParam = Long.parseLong(param.substring(0, param.lastIndexOf("h"))) * 360;
+                    timeParam = Long.parseLong(param.substring(0, param.lastIndexOf("h"))) * 3600;
                 } else if (param.endsWith("d")) {
-                    timeParam = Long.parseLong(param.substring(0, param.lastIndexOf("d"))) * 360 * 60;
+                    timeParam = Long.parseLong(param.substring(0, param.lastIndexOf("d"))) * 24 * 3600;
                 }
             }
             else if (param.equals("no")) {

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.WebView?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.lab77.HelloController">
+   <center>
+      <ScrollPane fx:id="scrollPane" fitToHeight="true" fitToWidth="true" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+         <content>
+            <WebView fx:id="webView" prefHeight="200.0" prefWidth="200.0" />
+         </content>
+      </ScrollPane>
+   </center>
+   <top>
+      <VBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="84.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+         <children>
+            <TextField fx:id="addressBar" maxHeight="-Infinity" minHeight="-Infinity" onAction="#createNewTabAddr" prefHeight="24.0" />
+            <HBox maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="200.0">
+               <children>
+                  <Button fx:id="newTabBtn" mnemonicParsing="false" onAction="#createNewTabBtn" text="Новая вкладка" />
+                  <Button mnemonicParsing="false" onAction="#createNewTabHTML" text="Свой HTML" />
+                  <MenuButton fx:id="menuBtn" mnemonicParsing="false" text="Избранное" />
+                  <Button mnemonicParsing="false" onAction="#onOrOffHistory" text="Отключить/Включить историю" />
+               </children>
+            </HBox>
+            <TabPane fx:id="tabPanel" maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" prefWidth="200.0" tabClosingPolicy="UNAVAILABLE" />
+         </children>
+      </VBox>
+   </top>
+</BorderPane>
