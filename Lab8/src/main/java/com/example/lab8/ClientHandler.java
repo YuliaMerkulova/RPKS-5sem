@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
+import static com.example.lab8.MsgState.*;
+
 
 public class ClientHandler implements Runnable {
 
@@ -20,7 +22,26 @@ public class ClientHandler implements Runnable {
         this.server = server;
         this.turn = turn_;
         this.inputStream =  new ObjectInputStream(client.getInputStream());
-        outputStream = new ObjectOutputStream(client.getOutputStream());
+        this.outputStream = new ObjectOutputStream(client.getOutputStream());
+    }
+
+    public boolean isCrushed(int row, int col, int preRow, int preCol, int numEnemy) {
+        boolean res = true;
+        int rowBefore = row - 1;
+        int colBefore = col - 1;
+        for (int i = 0; i < 9; i++) {
+            int rowNow = rowBefore + (i / 3);
+            int colNow = colBefore + (i % 3);
+            boolean isVisited = (rowNow == row && colNow == col) || (rowNow == preRow && colNow == preCol);
+            if (rowNow >= 0 && rowNow <= 9 && colNow >= 0 && colNow <= 9 && (!isVisited)){
+                if  (server.poles.get(numEnemy)[rowNow][colNow] == MyState.SHIP) {
+                    return false;
+                } else if (server.poles.get(numEnemy)[rowNow][colNow] == MyState.CRUSH) {
+                    res = res && isCrushed(rowNow, colNow, row, col, numEnemy);
+                }
+            }
+        }
+        return res;
     }
 
     ObjectInputStream inputStream;
@@ -28,33 +49,69 @@ public class ClientHandler implements Runnable {
     @Override
     public void run() {
         try {
-            while (client.isConnected()) {
-                if (!client.isInputShutdown()) {
-                    Message text = null;
-                    try{
+            while (!client.isClosed()) {
+                if (server.whoTurn.get() == 3) {
+                    break;
+                }
+                    if (server.whoTurn.get() == this.turn) {
+                        Message text = null;
+                        System.out.println("Я жду сообщение от клиента" + server.whoTurn.get());
                         text = (Message) inputStream.readObject();
-                    }
-                    catch (EOFException er) {
-                        er.printStackTrace();
-                    }
-                    if (text != null) {
-                        for (int i = 0; i < 10; i++) {
-                            for (int j = 0; j < 10; j++) {
-                                System.out.print(text.myStates[i][j]);
+                        System.out.println("Я получил сообщение от клиента" + this.turn);
+                        if (text != null) {
+                            if (text.state == POLE) {
+                                server.poles.add(this.turn - 1, text.myStates);
+                                if (this.turn == 1) {
+                                    if (server.whoTurn.get() != 3)
+                                        server.whoTurn.set(2);
+                                }
+                                else if (this.turn == 2){
+                                    server.clients.get(0).sendMessage(new Message(null, TURN, 0, 0));
+                                    this.sendMessage(new Message(null, WAIT, 0, 0));
+                                    if (server.whoTurn.get() != 3)
+                                        server.whoTurn.set(this.turn == 1? 2 : 1);
+                                }
+                            }else if (text.state == FIGHT) {
+                                System.out.println("Я получил файт");
+                                if (server.poles.get((turn == 1) ? 1: 0)[text.row][text.column] == MyState.SHIP) {
+                                    server.poles.get((turn == 1) ? 1: 0)[text.row][text.column] = MyState.CRUSH;
+                                    System.out.println("Я проверяю на краш");
+                                    boolean res = isCrushed(text.row, text.column, -1, -1, ((turn == 1) ? 1: 0));
+                                    System.out.println("Я проверил" + res);
+                                    server.ships[(turn == 1) ? 1: 0]--;
+                                    if (server.ships[(turn == 1) ? 1: 0] == 0) {
+                                        this.sendMessage(new Message(null, WIN, text.row, text.column));
+                                        server.clients.get((turn == 1) ? 1: 0).sendMessage(new Message(null, LOSE, text.row, text.column));
+                                        if (server.whoTurn.get() != 3) {
+                                            server.whoTurn.set(3);
+                                        }
+                                        continue;
+                                    }
+                                    if (res) {
+                                        this.sendMessage(new Message(null, KILLSHIP, text.row, text.column));
+                                        //server.clients.get((turn == 1) ? 1: 0).sendMessage(new Message(null, UREACH, text.row, text.column));
+                                    } else {
+                                        this.sendMessage(new Message(null, REACH, text.row, text.column));
+                                        }
+                                    server.clients.get((turn == 1) ? 1: 0).sendMessage(new Message(null, UREACH, text.row, text.column));
+                                } else {
+                                    this.sendMessage(new Message(null, NOTREACH, text.row, text.column));
+                                    server.clients.get((turn == 1) ? 1: 0).sendMessage(new Message(null, TURN, text.row, text.column));
+                                    if (server.whoTurn.get() != 3)
+                                        server.whoTurn.set(this.turn == 1? 2 : 1);
+                                }
                             }
-                            System.out.println();
                         }
                     }
-                    outputStream.writeObject(text);
-                    //server.sendMessageToChat(text);
-                }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
             System.out.println("Ошибка при работе с клиентом");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
-        } finally {
+        }
+        finally {
+            server.whoTurn.set(3);
             if (inputStream != null) {
                 try {
                     inputStream.close();
@@ -62,7 +119,6 @@ public class ClientHandler implements Runnable {
                     throw new RuntimeException(e);
                 }
             }
-
             if (client != null) {
                 try {
                     client.close();
@@ -74,11 +130,13 @@ public class ClientHandler implements Runnable {
     }
 
     public void sendMessage(Message message) {
-        ObjectOutputStream outputStream = null;
+        System.out.println("TRY TO SEND");
         try {
-            outputStream = new ObjectOutputStream(client.getOutputStream());
+            //outputStream = new ObjectOutputStream(client.getOutputStream());
+            System.out.println("STATE IS" + message.state);
             outputStream.writeObject(message);
-            outputStream.flush();
+            //outputStream.flush();
+            System.out.println("SEND");
         } catch (IOException e) {
             System.out.println("Проблема при записи сообщения в поток клиента: " + client.toString());
         }
@@ -88,73 +146,3 @@ public class ClientHandler implements Runnable {
         return name;
     }
 }
-
-//public class ClientHandler implements Runnable {
-//
-//    private static final String ANCHOR_NAME = "###";
-//
-//    private Socket client;
-//    private Server server;
-//    private String name;
-//
-//    private ObjectInputStream in; // поток чтения из сокета
-//    private ObjectOutputStream out; // поток записи в сокет
-//    public ClientHandler(Socket client, Server server) throws IOException {
-//        this.client = client;
-//        this.server = server;
-//        in = new ObjectInputStream(client.getInputStream());
-//        out = new ObjectOutputStream(client.getOutputStream());
-//    }
-//
-//    @Override
-//    public void run() {
-//        try {
-//
-//            while (!client.isClosed()) {
-//                Message msg = (Message) in.readObject();
-//                System.out.println("Сообщение от клиента: " + msg.column);
-//                server.sendMessageToChat(msg);
-//            }
-//        } catch (IOException e) {
-//            if (client.isClosed()) {
-//                System.out.println("Closed");
-//            }
-//            else {
-//                System.out.println("open");
-//            }
-//            System.err.println("Ошибка ubuhb при работе с клиентом" +  e);
-//        } catch (ClassNotFoundException e) {
-//            throw new RuntimeException(e);
-//        }
-//        finally {
-//            if (in != null) {
-//                try {
-//                    in.close();
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//            if (client != null) {
-//                try {
-//                    client.close();
-//                } catch (IOException ex) {
-//                    System.err.println("Ошибка при закрытии клиента!" + ex);
-//                }
-//            }
-//        }
-//}
-//
-//    public void sendMessage(Message msg) {
-//        try {
-//            //out = new ObjectOutputStream(client.getOutputStream());
-//            out.writeObject(msg);
-//            out.flush();
-//        } catch (IOException e) {
-//            System.err.println("Проблема при записи сообщения в поток клиента: " + client.toString() + e);
-//        }
-//    }
-//
-//    public String getName() {
-//        return name;
-//    }
-//}

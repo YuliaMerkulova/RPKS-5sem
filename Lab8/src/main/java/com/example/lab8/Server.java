@@ -1,6 +1,8 @@
 package com.example.lab8;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -14,15 +16,16 @@ public class Server {
     private String host = "localhost"; //127.0.0.1
     private Integer port = 8843;
 
-    private List<ClientHandler> clients = new ArrayList<>();
+    public List<ClientHandler> clients = new ArrayList<>();
 
     public Server() {
     }
 
     public AtomicInteger whoTurn;
-    public AtomicBoolean startGame;
+    public AtomicInteger startGame;
 
     public ArrayList<MyState[][]> poles;
+    public int[] ships;
 
     public Server(String host, Integer port) {
         this.host = host;
@@ -33,13 +36,18 @@ public class Server {
 
     public void start() {
         whoTurn = new AtomicInteger(1);
-        startGame = new AtomicBoolean(false);
+        startGame = new AtomicInteger(0);
+        poles = new ArrayList<>(2);
+        ships = new int[2];
+        ships[0] = 20;
+        ships[1] = 20;
         System.out.println("Инициализация сервера");
         ServerSocket serverSocket = null;
         try {
             serverSocket = new ServerSocket(port);
             System.out.println("Сервер стартовал и ожидает подключение клиента");
-            while (true) {
+            for (int i = 0; i < 2; i++)
+            {
                 Socket client = serverSocket.accept();
                 System.out.println("Подключился новый клиент: " + client.toString());
                 ClientHandler clientHandler = null;

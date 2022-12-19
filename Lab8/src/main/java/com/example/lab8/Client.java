@@ -28,9 +28,12 @@ public class Client {
     public Message recieve() {
         Message msg = null;
         try{
+            //System.out.println("TOTOTO I'M GOING TO RECIEVE");
             msg = (Message) inputStream.readObject();
+            //System.out.println("TOTOTO I'M RECIEVE");
         }catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+
         }
         return msg;
     }
@@ -41,6 +44,7 @@ public class Client {
         try {
             outputStream.close();
             inputStream.close();
+
         }catch (IOException e)
         {
             System.out.println("Не закрыли упс");

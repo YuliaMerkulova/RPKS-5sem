@@ -89,7 +89,8 @@
                               <Font size="34.0" />
                            </font>
                         </Label>
-                        <Button fx:id="doneBtn" layoutX="135.0" layoutY="104.0" mnemonicParsing="false" onAction="#startGame" prefHeight="28.0" prefWidth="166.0" text="Закончить расстановку" />
+                        <Button fx:id="doneBtn" layoutX="35.0" layoutY="104.0" mnemonicParsing="false" onAction="#startGame" prefHeight="28.0" prefWidth="166.0" text="Закончить расстановку" />
+                        <Button fx:id="resetBtn" layoutX="218.0" layoutY="104.0" mnemonicParsing="false" onAction="#resetPole" prefHeight="27.0" prefWidth="122.0" text="Сбросить поле" />
                      </children>
                   </AnchorPane>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
@@ -99,6 +100,7 @@
                               <Font size="34.0" />
                            </font>
                         </Label>
+                        <Button fx:id="fight" layoutX="192.0" layoutY="108.0" mnemonicParsing="false" onAction="#goFight" text="Выстрелить" />
                      </children>
                   </AnchorPane>
               </items>

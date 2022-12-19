@@ -21,8 +21,9 @@ public class ClientOne extends Application {
         stage.setScene(scene);
         stage.show();
         ClientGUI controller = fxmlLoader.getController();
-        controller.setClient(client); //проставляете значение в котроллер
         client.start();
+        controller.setClient(client); //проставляете значение в котроллер
+
         stage.setOnHiding(new EventHandler<WindowEvent>() {
             @Override
             public void handle(WindowEvent event) {
